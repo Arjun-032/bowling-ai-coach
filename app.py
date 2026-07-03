@@ -416,11 +416,35 @@ def main() -> None:
             help="Run with synthetic data — no video or model required.",
         )
 
+        # ── Video upload guidance ──────────────────────────────────────
+        if not demo_mode:
+            with st.expander("Video requirements (read before uploading)", expanded=True):
+                st.markdown(
+                    """
+**Ideal specs for accurate results:**
+
+| Setting | Recommended |
+|---|---|
+| Duration | 5 – 15 seconds |
+| Resolution | 720p (1280 x 720) |
+| Format | MP4 (H.264) |
+| Max file size | 50 MB |
+| Camera angle | Side-on, 90 deg to bowler |
+| Frame rate | 30 fps (no slow-motion) |
+
+**Tips before uploading:**
+- Trim to just the bowling action — a 10-second clip is ideal.
+- Keep the full body in frame throughout the delivery.
+- Good lighting and a plain background improve pose detection.
+- File too large? Compress free with [HandBrake](https://handbrake.fr).
+                    """
+                )
+
         uploaded_file = st.file_uploader(
             "Upload Bowling Video",
             type=["mp4", "avi", "mov", "mkv"],
             disabled=demo_mode,
-            help="Best results with a side-on (90°) camera angle.",
+            help="MP4, 720p, 5-15 sec, under 50 MB. Side-on camera angle required.",
         )
 
         ref_video = st.file_uploader(
@@ -428,8 +452,8 @@ def main() -> None:
             type=["mp4", "avi", "mov"],
             disabled=demo_mode,
             help=(
-                "Upload a pro bowler's video to use as the DTW comparison target "
-                "instead of the built-in synthetic reference."
+                "Upload a pro bowler's video to compare against instead of the "
+                "built-in synthetic reference. Same format rules apply (MP4, 720p, under 50 MB)."
             ),
         )
 
@@ -437,7 +461,7 @@ def main() -> None:
             "Processing speed",
             options=["Every frame", "Every 2nd", "Every 3rd (default)", "Every 4th", "Every 5th"],
             value="Every 3rd (default)",
-            help="Higher = faster but slightly less precise angle curves.",
+            help="Controls how many frames are analysed. 'Every 3rd' is the recommended balance of speed and accuracy. Use 'Every frame' only for short clips under 10 seconds.",
         )
         skip_map = {
             "Every frame": 0, "Every 2nd": 1, "Every 3rd (default)": 2,
