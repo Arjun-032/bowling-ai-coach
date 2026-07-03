@@ -24,8 +24,8 @@ dist/
 build/
 *.egg
 
-# Streamlit cache
-.streamlit/
+# Streamlit — track config but never commit secrets
+.streamlit/secrets.toml
 
 # IDE & editor configs
 .vscode/
