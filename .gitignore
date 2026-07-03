@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .gitignore — Cricket Bowling AI Coach
+# ─────────────────────────────────────────────────────────────────────────────
+
+# MediaPipe model file (5.5 MB binary — downloaded by setup.sh, not committed)
+models/
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Streamlit cache
+.streamlit/
+
+# IDE & editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Uploaded / temporary video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.tmp
+
+# Jupyter Notebooks (if any added later)
+.ipynb_checkpoints/
