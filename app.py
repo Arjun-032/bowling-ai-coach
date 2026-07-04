@@ -428,7 +428,7 @@ def main() -> None:
 | Duration | 5 – 15 seconds |
 | Resolution | 720p (1280 x 720) |
 | Format | MP4 (H.264) |
-| Max file size | 50 MB |
+| Max file size | 40 MB |
 | Camera angle | Side-on, 90 deg to bowler |
 | Frame rate | 30 fps (no slow-motion) |
 
@@ -444,7 +444,7 @@ def main() -> None:
             "Upload Bowling Video",
             type=["mp4", "avi", "mov", "mkv"],
             disabled=demo_mode,
-            help="MP4, 720p, 5-15 sec, under 50 MB. Side-on camera angle required.",
+            help="MP4, 720p, 5-15 sec, under 40 MB. Side-on camera angle required.",
         )
 
         ref_video = st.file_uploader(
@@ -453,7 +453,7 @@ def main() -> None:
             disabled=demo_mode,
             help=(
                 "Upload a pro bowler's video to compare against instead of the "
-                "built-in synthetic reference. Same format rules apply (MP4, 720p, under 50 MB)."
+                "built-in synthetic reference. Same format rules apply (MP4, 720p, under 40 MB)."
             ),
         )
 
