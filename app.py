@@ -48,12 +48,7 @@ from reference_profiles import get_reference_profile, get_demo_user_profile
 # Constants
 # ──────────────────────────────────────────────────────────────────────────────
 
-MODEL_PATH = "models/pose_landmarker_lite.task"
-MODEL_URL = (
-    "https://storage.googleapis.com/mediapipe-models/"
-    "pose_landmarker/pose_landmarker_lite/float16/latest/"
-    "pose_landmarker_lite.task"
-)
+
 
 # Phase colour palette (Plotly rgba strings)
 PHASE_COLORS: dict[str, str] = {
@@ -116,37 +111,9 @@ st.markdown(
 
 @st.cache_resource
 def load_pose_estimator() -> PoseEstimator:
-    return PoseEstimator(MODEL_PATH)
+    """Load MediaPipe Pose (Solutions API). Cached for the session lifetime."""
+    return PoseEstimator()
 
-
-def _download_model() -> bool:
-    """
-    Download the MediaPipe Pose Landmarker model if it is not already present.
-    Uses Python's built-in urllib so no external tools (wget/curl) are needed.
-    Returns True on success, False on failure.
-    """
-    import urllib.request
-    model_path = Path(MODEL_PATH)
-    if model_path.exists():
-        return True
-    try:
-        model_path.parent.mkdir(parents=True, exist_ok=True)
-        with st.spinner("Downloading pose model (one-time, ~6 MB)..."):
-            urllib.request.urlretrieve(MODEL_URL, str(model_path))
-        return True
-    except Exception as exc:
-        st.error(
-            f"Failed to download the MediaPipe model automatically: {exc}\n\n"
-            "Please run `bash setup.sh` locally and re-deploy, or download manually:\n"
-            f"{MODEL_URL}"
-        )
-        return False
-
-
-def model_available() -> bool:
-    if Path(MODEL_PATH).exists():
-        return True
-    return _download_model()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Core analysis pipeline
@@ -523,13 +490,10 @@ def main() -> None:
     # ── Real-video upload & analysis ──────────────────────────────────────────
     elif uploaded_file is not None:
 
-        if not model_available():
-            st.error(
-                "**MediaPipe model not found.** "
-                "Run `bash setup.sh` in your terminal to download it, "
-                "then restart the app."
-            )
-            st.code("bash setup.sh", language="bash")
+        try:
+            load_pose_estimator()  # warm up / validate on first run
+        except Exception as exc:
+            st.error(f"Failed to initialise pose estimator: {exc}")
             st.stop()
 
         if st.button("Analyze Bowling Action", type="primary", use_container_width=True):

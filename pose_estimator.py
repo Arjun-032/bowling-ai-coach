@@ -1,12 +1,15 @@
 """
 pose_estimator.py
 =================
-Thin, stateful wrapper around MediaPipe Pose Landmarker (Tasks API).
+Wrapper around MediaPipe Pose (Solutions API).
+
+Uses mp.solutions.pose which is bundled with the mediapipe package --
+no separate .task model file or external download required.
+This API is more stable on cloud Linux than the Tasks API.
 
 Responsibilities
 ----------------
-* Load the .task model file once at construction time.
-* Run per-frame inference and return landmarks in pixel coordinates.
+* Run per-frame pose inference and return landmarks in pixel coordinates.
 * Draw a clean skeleton overlay for visualisation.
 
 MediaPipe landmark indices used
@@ -21,13 +24,10 @@ from __future__ import annotations
 import cv2
 import numpy as np
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from pathlib import Path
 from typing import Optional
 
 
-# ── Landmark registry ─────────────────────────────────────────────────────────
+# -- Landmark registry -------------------------------------------------------
 
 LANDMARK_IDX: dict[str, int] = {
     "NOSE":           0,
@@ -61,48 +61,33 @@ SKELETON_EDGES: list[tuple[str, str]] = [
     ("RIGHT_KNEE",     "RIGHT_ANKLE"),
 ]
 
-LandmarkMap = dict[str, dict[str, float]]  # name → {x, y, z, visibility}
+LandmarkMap = dict[str, dict[str, float]]  # name -> {x, y, z, visibility}
 
 
 class PoseEstimator:
     """
-    Wraps MediaPipe Pose Landmarker for per-frame inference.
+    Wraps MediaPipe Pose (Solutions API) for per-frame inference.
 
     Parameters
     ----------
-    model_path : str
-        Path to pose_landmarker_lite.task (or full/heavy variant).
+    model_path : str, optional
+        Accepted for API compatibility but not used -- the Solutions API
+        bundles its own model inside the mediapipe package.
     min_pose_confidence : float
         Detection confidence threshold (0-1).
     """
 
-    MODEL_DOWNLOAD_CMD = (
-        "wget https://storage.googleapis.com/mediapipe-models/"
-        "pose_landmarker/pose_landmarker_lite/float16/latest/"
-        "pose_landmarker_lite.task -O models/pose_landmarker_lite.task"
-    )
-
     def __init__(
         self,
-        model_path: str,
+        model_path: str = None,
         min_pose_confidence: float = 0.45,
     ) -> None:
-        path = Path(model_path)
-        if not path.exists():
-            raise FileNotFoundError(
-                f"MediaPipe model not found at: {model_path}\n"
-                f"Download it with:\n  {self.MODEL_DOWNLOAD_CMD}"
-            )
-
-        base_opts = python.BaseOptions(model_asset_path=str(path))
-        opts = vision.PoseLandmarkerOptions(
-            base_options=base_opts,
-            running_mode=vision.RunningMode.IMAGE,
-            min_pose_detection_confidence=min_pose_confidence,
-            min_pose_presence_confidence=min_pose_confidence,
-            output_segmentation_masks=False,
+        self._pose = mp.solutions.pose.Pose(
+            static_image_mode=True,
+            model_complexity=1,
+            min_detection_confidence=min_pose_confidence,
+            min_tracking_confidence=min_pose_confidence,
         )
-        self._landmarker = vision.PoseLandmarker.create_from_options(opts)
 
     # ------------------------------------------------------------------
     # Inference
@@ -112,17 +97,16 @@ class PoseEstimator:
         """
         Run pose detection on a single RGB frame.
 
-        Returns a dict mapping landmark name → {"x", "y", "z", "visibility"}
+        Returns a dict mapping landmark name -> {"x", "y", "z", "visibility"}
         with x/y in pixel coordinates, or None if no pose is detected.
         """
         h, w = frame_rgb.shape[:2]
-        mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
-        result = self._landmarker.detect(mp_img)
+        result = self._pose.process(frame_rgb)
 
         if not result.pose_landmarks:
             return None
 
-        lms = result.pose_landmarks[0]
+        lms = result.pose_landmarks.landmark
         return {
             name: {
                 "x":          float(lms[idx].x * w),
@@ -145,7 +129,7 @@ class PoseEstimator:
         """
         Return a copy of frame_rgb with a colour-coded skeleton overlay.
 
-        Right-side joints → warm red;  Left-side joints → cool blue.
+        Right-side joints -> warm red;  Left-side joints -> cool blue.
         """
         out = frame_rgb.copy()
         if landmarks is None:
@@ -173,4 +157,4 @@ class PoseEstimator:
 
     def close(self) -> None:
         """Release MediaPipe internal resources."""
-        self._landmarker.close()
+        self._pose.close()
