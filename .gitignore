@@ -2,7 +2,7 @@
 # .gitignore — Cricket Bowling AI Coach
 # ─────────────────────────────────────────────────────────────────────────────
 
-# MediaPipe model file (5.5 MB binary — downloaded by setup.sh, not committed)
+# models/ directory (no longer used — MediaPipe model is bundled in the package)
 models/
 
 # Python bytecode & caches

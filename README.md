@@ -33,7 +33,7 @@ Upload a side-on MP4 of any cricket bowler and receive:
 │  VideoProcessor ──► frame generator (skip_frames configurable)       │
 │       │                                                              │
 │       ▼                                                              │
-│  PoseEstimator ───► MediaPipe BlazePose (pose_landmarker_lite.task)  │
+│  PoseEstimator ───► MediaPipe BlazePose (Solutions API, bundled)      │
 │       │              33 keypoints, pixel coordinates, visibility     │
 │       ▼                                                              │
 │  BiomechanicsAnalyzer                                                │
@@ -76,15 +76,13 @@ cricket_bowling_ai/
 ├── app.py                    # Streamlit app — orchestration + UI
 ├── biomechanics.py           # BiomechanicsAnalyzer — angles, events, coaching
 ├── dtw_comparator.py         # DTWComparator — multivariate DTW
-├── pose_estimator.py         # PoseEstimator — MediaPipe Tasks API
+├── pose_estimator.py         # PoseEstimator — MediaPipe Solutions API
 ├── reference_profiles.py     # Synthetic elite & demo bowling profiles
 ├── video_processor.py        # VideoProcessor — frame I/O
 ├── requirements.txt
-├── setup.sh                  # One-command model download + pip install
+├── setup.sh                  # pip install helper
 ├── .gitignore
-├── LICENSE
-└── models/
-    └── pose_landmarker_lite.task  # Downloaded by setup.sh — NOT committed to git
+└── LICENSE
 ```
 
 ---
@@ -94,27 +92,17 @@ cricket_bowling_ai/
 ### Prerequisites
 
 - Python >= 3.10
-- `wget` or `curl` (for model download)
 
 ### Install
 
 ```bash
 git clone <repo-url>
-cd cricket_bowling_ai
+cd bowling-ai-coach
 
-# Creates virtual env (optional but recommended)
+# Create virtual env (optional but recommended)
 python -m venv .venv && source .venv/bin/activate
 
-# Download MediaPipe model + install dependencies
-bash setup.sh
-```
-
-### Manual model download (alternative)
-
-```bash
-mkdir -p models
-wget https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task \
-     -O models/pose_landmarker_lite.task
+# Install dependencies
 pip install -r requirements.txt
 ```
 
