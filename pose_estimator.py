@@ -26,6 +26,12 @@ import numpy as np
 import mediapipe as mp
 from typing import Optional
 
+# Defensive import: try the standard path first, fall back to explicit submodule
+try:
+    _mp_pose = mp.solutions.pose
+except AttributeError:
+    from mediapipe.python.solutions import pose as _mp_pose  # type: ignore
+
 
 # -- Landmark registry -------------------------------------------------------
 
@@ -82,7 +88,7 @@ class PoseEstimator:
         model_path: str = None,
         min_pose_confidence: float = 0.45,
     ) -> None:
-        self._pose = mp.solutions.pose.Pose(
+        self._pose = _mp_pose.Pose(
             static_image_mode=True,
             model_complexity=1,
             min_detection_confidence=min_pose_confidence,
